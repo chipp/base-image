@@ -1,2 +1,7 @@
+.DEFAULT_GOAL := push
+
 build:
-	docker build --no-cache . -t chippcheg/build.rust
+	docker build . -t chippcheg/build.rust:latest
+
+push: build
+	docker push chippcheg/build.rust:latest

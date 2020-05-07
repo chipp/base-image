@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := push
 
 build:
-	docker build . -t chippcheg/build.rust:latest
+	docker build . -t docker.pkg.github.com/chipp/base-image/build-rust:latest
 
 push: build
-	docker push chippcheg/build.rust:latest
+	docker push docker.pkg.github.com/chipp/base-image/build-rust:latest

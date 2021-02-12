@@ -1,4 +1,4 @@
-FROM rust:1.43.0-slim-buster
+FROM rust:1.50.0-slim-buster
 
 RUN rustup target add x86_64-unknown-linux-musl && \
   echo "[build]\ntarget = \"x86_64-unknown-linux-musl\"" > $CARGO_HOME/config

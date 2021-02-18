@@ -52,7 +52,7 @@ RUN curl -sSL https://curl.haxx.se/download/curl-$CURL_VER.tar.gz | tar xz && \
   --disable-file --disable-dict --disable-telnet --disable-tftp --disable-manual --disable-ldaps \
   --disable-dependency-tracking --disable-rtsp --disable-pop3  --disable-imap --disable-smtp \
   --disable-gopher --disable-smb --without-libidn --disable-proxy --host arm && \
-  make -j$(nproc) curl_LDFLAGS="-all-static" && make install && $PREFIX/bin/curl --version && \
+  make -j$(nproc) curl_LDFLAGS="-all-static" && make install && \
   cd .. && rm -rf curl-$CURL_VER
 
 ENV PATH=$PREFIX/bin:$PATH \

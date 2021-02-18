@@ -9,18 +9,24 @@ on:
 
 env:
   OWNER: chipp
-  IMAGE_NAME: build.rust.x86_64.musl
 
 jobs:
   push:
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
 
+    strategy:
+      matrix:
+        arch: [x86_64_musl, armv7_gnueabihf]
+
+    env:
+      IMAGE_NAME: build.rust.${{ matrix.arch }}
+
     steps:
       - uses: actions/checkout@v2
 
       - name: Build image
-        run: docker build . --file Dockerfile --tag $IMAGE_NAME
+        run: docker build . --file Dockerfile.${{ matrix.arch }} --tag $IMAGE_NAME
 
       - name: Log into registry
         run: echo ${{ secrets.CR_PAT }} | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin

@@ -1,4 +1,3 @@
-TARGET = armv7-unknown-linux-musleabihf
 OUTPUT = /musl
 GCC_VER = 7.3.0
 DL_CMD = curl -C - -L -o

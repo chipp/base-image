@@ -25,7 +25,7 @@ RUN curl -sSL -o musl.zip https://github.com/richfelker/musl-cross-make/archive/
   echo "6cbe2f6ce92e7f8f3973786aaf0b990d0db380c0e0fc419a7d516df5bb03c891  musl.zip" | sha256sum -c -; \
   unzip musl.zip && mv musl-cross-make-0.9.9 musl-cross-make && cd musl-cross-make && \
   mv ../config.mak ./ && \
-  make -j$(nproc) install && \
+  TARGET=$TARGET make -j$(nproc) install > /dev/null && \
   cd .. && rm -rf musl-cross-make
 
 ENV SSL_VER="1.0.2q" \
@@ -77,10 +77,10 @@ RUN curl -O https://static.rust-lang.org/rustup/archive/1.23.1/x86_64-unknown-li
     chmod +x rustup-init; \
     ./rustup-init -y --no-modify-path --profile minimal --default-toolchain $RUST_VERSION --default-host x86_64-unknown-linux-gnu; \
     rm rustup-init; \
-    rustup TARGET add $TARGET
+    rustup target add $TARGET
 
-RUN echo "[build]\nTARGET = \"$TARGET\"\n\n\
-[TARGET.$TARGET]\nlinker = \"$TARGET-gcc\"\n" > /root/.cargo/config
+RUN echo "[build]\ntarget = \"$TARGET\"\n\n\
+[target.$TARGET]\nlinker = \"$TARGET-gcc\"\n" > /root/.cargo/config
 
 ENV OPENSSL_STATIC=1 \
   OPENSSL_DIR=$PREFIX \

@@ -28,9 +28,12 @@ RUN curl -sSL -o musl.zip https://github.com/richfelker/musl-cross-make/archive/
   TARGET=$TARGET make -j$(nproc) install > /dev/null && \
   cd .. && rm -rf musl-cross-make
 
-ENV SSL_VER="1.0.2q" \
-  CURL_VER="7.64.1" \
-  ZLIB_VER="1.2.11"
+ENV SSL_VER="1.1.1j" \
+  SSL_SHA256="aaf2fcb575cdf6491b98ab4829abf78a3dec8402b8b81efc8f23c00d443981bf" \
+  CURL_VER="7.75.0" \
+  CURL_SHA256="4d51346fe621624c3e4b9f86a8fd6f122a143820e17889f59c18f245d2d8e7a6" \
+  ZLIB_VER="1.2.11" \
+  ZLIB_SHA256="c3e5e9fdd5004dcb542feda5ee4f0ff0744628baf8ed2dd5d66f8ca1197cb1a1"
 
 ENV PREFIX=/musl/$TARGET \
   PKG_CONFIG_PATH=/usr/local/lib/pkgconfig \
@@ -44,22 +47,25 @@ ENV TARGET_CC=/musl/bin/$TARGET-gcc \
 ENV CC=$TARGET_CC \
   C_INCLUDE_PATH=$TARGET_C_INCLUDE_PATH
 
-RUN curl -sSL http://zlib.net/zlib-$ZLIB_VER.tar.gz | tar xz && \
-  cd zlib-$ZLIB_VER && \
+RUN curl -sSL -O http://zlib.net/zlib-$ZLIB_VER.tar.gz && \
+  echo "$ZLIB_SHA256  zlib-$ZLIB_VER.tar.gz" | sha256sum -c - && \
+  tar xfz zlib-${ZLIB_VER}.tar.gz && cd zlib-$ZLIB_VER && \
   CC="$CC -fPIC -pie" LDFLAGS="-L$PREFIX/lib" CFLAGS="-I$PREFIX/include" \
   CHOST=arm ./configure --static --prefix=$PREFIX && \
   make -j$(nproc) && make install && \
-  cd .. && rm -rf zlib-$ZLIB_VER
+  cd .. && rm -rf zlib-$ZLIB_VER zlib-$ZLIB_VER.tar.gz
 
-RUN curl -sSL http://www.openssl.org/source/openssl-$SSL_VER.tar.gz | tar xz && \
-  cd openssl-$SSL_VER && \
+RUN curl -sSL -O http://www.openssl.org/source/openssl-$SSL_VER.tar.gz && \
+  echo "$SSL_SHA256  openssl-$SSL_VER.tar.gz" | sha256sum -c - && \
+  tar xfz openssl-${SSL_VER}.tar.gz && cd openssl-$SSL_VER && \
   CC=gcc ./Configure no-zlib no-shared -fPIC --cross-compile-prefix=$TARGET- --prefix=$PREFIX --openssldir=$PREFIX/ssl $OPENSSL_ARCH && \
   env C_INCLUDE_PATH=$PREFIX/include make depend 2> /dev/null && \
   make -j$(nproc) && make install_sw && \
-  cd .. && rm -rf openssl-$SSL_VER
+  cd .. && rm -rf openssl-$SSL_VER openssl-$SSL_VER.tar.gz
 
-RUN curl -sSL https://curl.haxx.se/download/curl-$CURL_VER.tar.gz | tar xz && \
-  cd curl-$CURL_VER && \
+RUN curl -sSL -O https://curl.haxx.se/download/curl-$CURL_VER.tar.gz && \
+  echo "$CURL_SHA256  curl-$CURL_VER.tar.gz" | sha256sum -c - && \
+  tar xfz curl-${CURL_VER}.tar.gz && cd curl-$CURL_VER && \
   LIBS="-ldl" LDFLAGS="-L$PREFIX/lib" CPPFLAGS="-I$PREFIX/include" CFLAGS="-I$PREFIX/include" ./configure \
   --enable-shared=no --with-zlib --enable-static=ssl --with-ssl="$PREFIX" --enable-optimize --prefix=$PREFIX \
   --with-ca-path=/etc/ssl/certs/ --with-ca-bundle=/etc/ssl/certs/ca-certificates.crt --without-ca-fallback \
@@ -73,14 +79,14 @@ RUN curl -sSL https://curl.haxx.se/download/curl-$CURL_VER.tar.gz | tar xz && \
 ENV PATH=/root/.cargo/bin:$PATH
 
 RUN curl -O https://static.rust-lang.org/rustup/archive/1.23.1/x86_64-unknown-linux-gnu/rustup-init; \
-    echo "ed7773edaf1d289656bdec2aacad12413b38ad0193fff54b2231f5140a4b07c5 *rustup-init" | sha256sum -c -; \
-    chmod +x rustup-init; \
-    ./rustup-init -y --no-modify-path --profile minimal --default-toolchain $RUST_VERSION --default-host x86_64-unknown-linux-gnu; \
-    rm rustup-init; \
-    rustup target add $TARGET
+  echo "ed7773edaf1d289656bdec2aacad12413b38ad0193fff54b2231f5140a4b07c5 *rustup-init" | sha256sum -c -; \
+  chmod +x rustup-init; \
+  ./rustup-init -y --no-modify-path --profile minimal --default-toolchain $RUST_VERSION --default-host x86_64-unknown-linux-gnu; \
+  rm rustup-init; \
+  rustup target add $TARGET
 
 RUN echo "[build]\ntarget = \"$TARGET\"\n\n\
-[target.$TARGET]\nlinker = \"$TARGET-gcc\"\n" > /root/.cargo/config
+  [target.$TARGET]\nlinker = \"$TARGET-gcc\"\n" > /root/.cargo/config
 
 ENV OPENSSL_STATIC=1 \
   OPENSSL_DIR=$PREFIX \

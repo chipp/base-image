@@ -63,8 +63,8 @@ ENV CURL_VER="7.75.0" CURL_SHA256="4d51346fe621624c3e4b9f86a8fd6f122a143820e1788
 RUN curl -sSL -O https://curl.haxx.se/download/curl-$CURL_VER.tar.gz && \
   echo "$CURL_SHA256  curl-$CURL_VER.tar.gz" | sha256sum -c - && \
   tar xfz curl-${CURL_VER}.tar.gz && cd curl-$CURL_VER && \
-  LIBS="-ldl" LDFLAGS="-L$PREFIX/lib" CPPFLAGS="-I$PREFIX/include" CFLAGS="-I$PREFIX/include" ./configure \
-  --enable-shared=no --with-zlib --enable-static=ssl --with-ssl="$PREFIX" --enable-optimize --prefix=$PREFIX \
+  CC="$CC -fPIC -pie" LIBS="-ldl" LDFLAGS="-L$PREFIX/lib" CPPFLAGS="-I$PREFIX/include" CFLAGS="-I$PREFIX/include" \
+  ./configure --enable-shared=no --with-zlib --enable-static=ssl --with-ssl="$PREFIX" --enable-optimize --prefix=$PREFIX \
   --with-ca-path=/etc/ssl/certs/ --with-ca-bundle=/etc/ssl/certs/ca-certificates.crt --without-ca-fallback \
   --disable-shared --disable-ldap --disable-sspi --without-librtmp --disable-ftp \
   --disable-file --disable-dict --disable-telnet --disable-tftp --disable-manual --disable-ldaps \

@@ -8,6 +8,12 @@ armv7:
 
 build: x86_64 armv7
 
-push: build
-	docker push ghcr.io/chipp/build.rust.x86_64_musl:latest
-	docker push ghcr.io/chipp/build.rust.armv7_musl:latest
+check-rust-version:
+ifndef RUST_VERSION
+	$(error RUST_VERSION is undefined)
+endif
+
+tag: NEXT_REVISION=$(shell echo $$(( $(shell git tag -l | grep $(RUST_VERSION) | sort -r | head -n 1 | sed -e 's,.*_\(.*\),\1,') + 1 )))
+tag: check-rust-version
+	git tag $(RUST_VERSION)_$(NEXT_REVISION) HEAD
+	git push origin $(RUST_VERSION)_$(NEXT_REVISION)

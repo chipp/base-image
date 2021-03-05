@@ -28,13 +28,6 @@ RUN curl -sSL -o musl.zip https://github.com/richfelker/musl-cross-make/archive/
   TARGET=$TARGET make -j$(nproc) install > /dev/null && \
   cd .. && rm -rf musl-cross-make
 
-ENV SSL_VER="1.1.1j" \
-  SSL_SHA256="aaf2fcb575cdf6491b98ab4829abf78a3dec8402b8b81efc8f23c00d443981bf" \
-  CURL_VER="7.75.0" \
-  CURL_SHA256="4d51346fe621624c3e4b9f86a8fd6f122a143820e17889f59c18f245d2d8e7a6" \
-  ZLIB_VER="1.2.11" \
-  ZLIB_SHA256="c3e5e9fdd5004dcb542feda5ee4f0ff0744628baf8ed2dd5d66f8ca1197cb1a1"
-
 ENV PREFIX=/musl/$TARGET \
   PKG_CONFIG_PATH=/usr/local/lib/pkgconfig \
   LD_LIBRARY_PATH=$PREFIX \
@@ -45,8 +38,10 @@ ENV TARGET_CC=/musl/bin/$TARGET-gcc \
   TARGET_C_INCLUDE_PATH=$PREFIX/include/
 
 ENV CC=$TARGET_CC \
+  CXX=$TARGET_CXX \
   C_INCLUDE_PATH=$TARGET_C_INCLUDE_PATH
 
+ENV ZLIB_VER="1.2.11" ZLIB_SHA256="c3e5e9fdd5004dcb542feda5ee4f0ff0744628baf8ed2dd5d66f8ca1197cb1a1"
 RUN curl -sSL -O http://zlib.net/zlib-$ZLIB_VER.tar.gz && \
   echo "$ZLIB_SHA256  zlib-$ZLIB_VER.tar.gz" | sha256sum -c - && \
   tar xfz zlib-${ZLIB_VER}.tar.gz && cd zlib-$ZLIB_VER && \
@@ -55,6 +50,7 @@ RUN curl -sSL -O http://zlib.net/zlib-$ZLIB_VER.tar.gz && \
   make -j$(nproc) && make install && \
   cd .. && rm -rf zlib-$ZLIB_VER zlib-$ZLIB_VER.tar.gz
 
+ENV SSL_VER="1.1.1j" SSL_SHA256="aaf2fcb575cdf6491b98ab4829abf78a3dec8402b8b81efc8f23c00d443981bf"
 RUN curl -sSL -O http://www.openssl.org/source/openssl-$SSL_VER.tar.gz && \
   echo "$SSL_SHA256  openssl-$SSL_VER.tar.gz" | sha256sum -c - && \
   tar xfz openssl-${SSL_VER}.tar.gz && cd openssl-$SSL_VER && \
@@ -63,6 +59,7 @@ RUN curl -sSL -O http://www.openssl.org/source/openssl-$SSL_VER.tar.gz && \
   make -j$(nproc) && make install_sw && \
   cd .. && rm -rf openssl-$SSL_VER openssl-$SSL_VER.tar.gz
 
+ENV CURL_VER="7.75.0" CURL_SHA256="4d51346fe621624c3e4b9f86a8fd6f122a143820e17889f59c18f245d2d8e7a6"
 RUN curl -sSL -O https://curl.haxx.se/download/curl-$CURL_VER.tar.gz && \
   echo "$CURL_SHA256  curl-$CURL_VER.tar.gz" | sha256sum -c - && \
   tar xfz curl-${CURL_VER}.tar.gz && cd curl-$CURL_VER && \
@@ -74,15 +71,15 @@ RUN curl -sSL -O https://curl.haxx.se/download/curl-$CURL_VER.tar.gz && \
   --disable-dependency-tracking --disable-rtsp --disable-pop3  --disable-imap --disable-smtp \
   --disable-gopher --disable-smb --without-libidn --disable-proxy --host armv7 && \
   make -j$(nproc) curl_LDFLAGS="-all-static" && make install && \
-  cd .. && rm -rf curl-$CURL_VER
+  cd .. && rm -rf curl-$CURL_VER curl-$CURL_VER.tar.gz
 
 ENV PATH=/root/.cargo/bin:$PATH
 
-RUN curl -O https://static.rust-lang.org/rustup/archive/1.23.1/x86_64-unknown-linux-gnu/rustup-init; \
-  echo "ed7773edaf1d289656bdec2aacad12413b38ad0193fff54b2231f5140a4b07c5 *rustup-init" | sha256sum -c -; \
-  chmod +x rustup-init; \
-  ./rustup-init -y --no-modify-path --profile minimal --default-toolchain $RUST_VERSION --default-host x86_64-unknown-linux-gnu; \
-  rm rustup-init; \
+RUN curl -O https://static.rust-lang.org/rustup/archive/1.23.1/x86_64-unknown-linux-gnu/rustup-init && \
+  echo "ed7773edaf1d289656bdec2aacad12413b38ad0193fff54b2231f5140a4b07c5 *rustup-init" | sha256sum -c - && \
+  chmod +x rustup-init && \
+  ./rustup-init -y --no-modify-path --profile minimal --default-toolchain $RUST_VERSION --default-host x86_64-unknown-linux-gnu && \
+  rm rustup-init && \
   rustup target add $TARGET
 
 RUN echo "[build]\ntarget = \"$TARGET\"\n\n\
@@ -94,8 +91,16 @@ ENV OPENSSL_STATIC=1 \
   DEP_OPENSSL_INCLUDE=$PREFIX/include/ \
   OPENSSL_LIB_DIR=$PREFIX/lib/ \
   LIBZ_SYS_STATIC=1 \
-  PKG_CONFIG_ALLOW_CROSS=true \
-  PKG_CONFIG_ALL_STATIC=true \
-  PKG_CONFIG_PATH=$PREFIX/lib/pkgconfig \
   SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt \
   SSL_CERT_DIR=/etc/ssl/certs
+
+ENV CHOST=armv7-unknown-linux-musleabihf \
+  CROSS_PREFIX=armv7-unknown-linux-musleabihf- \
+  CXX=armv7-unknown-linux-musleabihf-g++ \
+  LDFLAGS="-L$PREFIX/lib" \
+  CFLAGS="-I$PREFIX/include" \
+  PKG_CONFIG_ALLOW_CROSS=true \
+  PKG_CONFIG_ALL_STATIC=true \
+  PKG_CONFIG_PATH=$PREFIX/lib/pkgconfig
+
+ENV RUSTFLAGS=-L$PREFIX/lib

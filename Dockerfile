@@ -1,7 +1,5 @@
 FROM debian:buster-slim
 
-ENV RUST_VERSION=1.50.0
-
 ARG TARGET=x86_64-unknown-linux-musl
 ARG OPENSSL_ARCH=linux-x86_64
 
@@ -26,7 +24,7 @@ RUN curl -sSL -o musl.zip https://github.com/richfelker/musl-cross-make/archive/
   unzip musl.zip && mv musl-cross-make-0.9.9 musl-cross-make && cd musl-cross-make && \
   mv ../config.mak ./ && \
   TARGET=$TARGET make -j$(nproc) install > /dev/null && \
-  cd .. && rm -rf musl-cross-make
+  cd .. && rm -rf musl-cross-make musl.zip
 
 ENV PREFIX=/musl/$TARGET \
   PKG_CONFIG_PATH=/usr/local/lib/pkgconfig \
@@ -74,6 +72,8 @@ RUN curl -sSL -O https://curl.haxx.se/download/curl-$CURL_VER.tar.gz && \
   cd .. && rm -rf curl-$CURL_VER curl-$CURL_VER.tar.gz
 
 ENV PATH=/root/.cargo/bin:$PATH
+
+ENV RUST_VERSION=1.50.0
 
 RUN curl -O https://static.rust-lang.org/rustup/archive/1.23.1/x86_64-unknown-linux-gnu/rustup-init && \
   echo "ed7773edaf1d289656bdec2aacad12413b38ad0193fff54b2231f5140a4b07c5 *rustup-init" | sha256sum -c - && \

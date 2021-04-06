@@ -40,7 +40,7 @@ ENV CC=$TARGET_CC \
   C_INCLUDE_PATH=$TARGET_C_INCLUDE_PATH
 
 ENV ZLIB_VER="1.2.11" ZLIB_SHA256="c3e5e9fdd5004dcb542feda5ee4f0ff0744628baf8ed2dd5d66f8ca1197cb1a1"
-RUN curl -sSL -O http://zlib.net/zlib-$ZLIB_VER.tar.gz && \
+RUN curl -sSL -O https://zlib.net/zlib-$ZLIB_VER.tar.gz && \
   echo "$ZLIB_SHA256  zlib-$ZLIB_VER.tar.gz" | sha256sum -c - && \
   tar xfz zlib-${ZLIB_VER}.tar.gz && cd zlib-$ZLIB_VER && \
   CC="$CC -fPIC -pie" LDFLAGS="-L$PREFIX/lib" CFLAGS="-I$PREFIX/include" \
@@ -48,8 +48,8 @@ RUN curl -sSL -O http://zlib.net/zlib-$ZLIB_VER.tar.gz && \
   make -j$(nproc) && make install && \
   cd .. && rm -rf zlib-$ZLIB_VER zlib-$ZLIB_VER.tar.gz
 
-ENV SSL_VER="1.1.1j" SSL_SHA256="aaf2fcb575cdf6491b98ab4829abf78a3dec8402b8b81efc8f23c00d443981bf"
-RUN curl -sSL -O http://www.openssl.org/source/openssl-$SSL_VER.tar.gz && \
+ENV SSL_VER="1.1.1k" SSL_SHA256="892a0875b9872acd04a9fde79b1f943075d5ea162415de3047c327df33fbaee5"
+RUN curl -sSL -O https://www.openssl.org/source/openssl-$SSL_VER.tar.gz && \
   echo "$SSL_SHA256  openssl-$SSL_VER.tar.gz" | sha256sum -c - && \
   tar xfz openssl-${SSL_VER}.tar.gz && cd openssl-$SSL_VER && \
   CC=gcc ./Configure no-zlib no-shared -fPIC --cross-compile-prefix=$TARGET- --prefix=$PREFIX --openssldir=$PREFIX/ssl $OPENSSL_ARCH && \
@@ -57,7 +57,7 @@ RUN curl -sSL -O http://www.openssl.org/source/openssl-$SSL_VER.tar.gz && \
   make -j$(nproc) && make install_sw && \
   cd .. && rm -rf openssl-$SSL_VER openssl-$SSL_VER.tar.gz
 
-ENV CURL_VER="7.75.0" CURL_SHA256="4d51346fe621624c3e4b9f86a8fd6f122a143820e17889f59c18f245d2d8e7a6"
+ENV CURL_VER="7.76.0" CURL_SHA256="3b4378156ba09e224008e81dcce854b7ce4d182b1f9cfb97fe5ed9e9c18c6bd3"
 RUN curl -sSL -O https://curl.haxx.se/download/curl-$CURL_VER.tar.gz && \
   echo "$CURL_SHA256  curl-$CURL_VER.tar.gz" | sha256sum -c - && \
   tar xfz curl-${CURL_VER}.tar.gz && cd curl-$CURL_VER && \

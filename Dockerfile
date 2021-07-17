@@ -73,7 +73,7 @@ RUN curl -sSL -O https://curl.haxx.se/download/curl-$CURL_VER.tar.gz && \
 
 ENV PATH=/root/.cargo/bin:$PATH
 
-ENV RUST_VERSION=1.52.1
+ENV RUST_VERSION=1.53.0
 
 RUN curl -O https://static.rust-lang.org/rustup/archive/1.23.1/x86_64-unknown-linux-gnu/rustup-init && \
   echo "ed7773edaf1d289656bdec2aacad12413b38ad0193fff54b2231f5140a4b07c5 *rustup-init" | sha256sum -c - && \
